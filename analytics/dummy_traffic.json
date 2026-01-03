@@ -1,0 +1,52 @@
+[
+  {
+    "sensor_id": "S001",
+    "road_id": "R005",
+    "road_type": "Highway",
+    "zone": "Downtown",
+    "vehicle_count": 85,
+    "average_speed": 35,
+    "occupancy_rate": 78.5,
+    "event_time": "2026-01-02T08:30:00.000000"
+  },
+  {
+    "sensor_id": "S002",
+    "road_id": "R012",
+    "road_type": "Avenue",
+    "zone": "Industrial",
+    "vehicle_count": 42,
+    "average_speed": 55,
+    "occupancy_rate": 45.2,
+    "event_time": "2026-01-02T08:35:00.000000"
+  },
+  {
+    "sensor_id": "S003",
+    "road_id": "R008",
+    "road_type": "Street",
+    "zone": "Residential-North",
+    "vehicle_count": 18,
+    "average_speed": 25,
+    "occupancy_rate": 82.1,
+    "event_time": "2026-01-02T08:40:00.000000"
+  },
+  {
+    "sensor_id": "S004",
+    "road_id": "R003",
+    "road_type": "Highway",
+    "zone": "Suburbs",
+    "vehicle_count": 95,
+    "average_speed": 75,
+    "occupancy_rate": 55.3,
+    "event_time": "2026-01-02T14:15:00.000000"
+  },
+  {
+    "sensor_id": "S005",
+    "road_id": "R020",
+    "road_type": "Avenue",
+    "zone": "Downtown",
+    "vehicle_count": 72,
+    "average_speed": 20,
+    "occupancy_rate": 88.7,
+    "event_time": "2026-01-02T18:45:00.000000"
+  }
+]

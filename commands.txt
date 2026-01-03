@@ -1,0 +1,8 @@
+run spark job:
+docker exec spark-master spark-submit \
+     --master spark://spark-master:7077 \
+     /opt/spark-apps/spark_processor.py
+
+docker exec spark-master spark-submit   --master spark://spark-master:7077   --jars /opt/spark-jars/postgresql-42.6.0.jar   /opt/spark-apps/load_to_postgres.py
+
+docker exec -it postgres psql -U traffic_user -d traffic_db

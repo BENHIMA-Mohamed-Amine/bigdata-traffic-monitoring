@@ -1,99 +1,167 @@
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
+  # zookeeper:
+  #   image: confluentinc/cp-zookeeper:7.5.0
+  #   container_name: zookeeper
+  #   environment:
+  #     ZOOKEEPER_CLIENT_PORT: 2181
+  #     ZOOKEEPER_TICK_TIME: 2000
+  #   ports:
+  #     - "2181:2181"
 
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "9093:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  # kafka:
+  #   image: confluentinc/cp-kafka:7.5.0
+  #   container_name: kafka
+  #   depends_on:
+  #     - zookeeper
+  #   ports:
+  #     - "9093:9092"
+  #   environment:
+  #     KAFKA_BROKER_ID: 1
+  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9093
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    depends_on:
-      - kafka
+  # kafka-ui:
+  #   image: provectuslabs/kafka-ui:latest
+  #   container_name: kafka-ui
+  #   depends_on:
+  #     - kafka
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     KAFKA_CLUSTERS_0_NAME: local
+  #     KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+  #     KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
+  # namenode:
+  #   image: apache/hadoop:3.3.6
+  #   container_name: namenode
+  #   hostname: namenode
+  #   command: ["hdfs", "namenode"]
+  #   ports:
+  #     - "9870:9870"
+  #     - "8020:8020"
+  #   env_file:
+  #     - ./config
+  #   environment:
+  #     ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+
+  # datanode1:
+  #   image: apache/hadoop:3.3.6
+  #   container_name: datanode1
+  #   hostname: datanode1
+  #   command: ["hdfs", "datanode"]
+  #   env_file:
+  #     - ./config
+  #   depends_on:
+  #     - namenode
+
+  # resourcemanager:
+  #   image: apache/hadoop:3.3.6
+  #   container_name: resourcemanager
+  #   hostname: resourcemanager
+  #   command: ["yarn", "resourcemanager"]
+  #   ports:
+  #     - "8088:8088"
+  #   env_file:
+  #     - ./config
+  #   depends_on:
+  #     - namenode
+  #     - datanode1
+
+  # nodemanager:
+  #   image: apache/hadoop:3.3.6
+  #   container_name: nodemanager
+  #   command: ["yarn", "nodemanager"]
+  #   env_file:
+  #     - ./config
+  #   depends_on:
+  #     - resourcemanager
+
+  # ingest-service:
+  #   build:
+  #     context: ./hdfs_ingest
+  #     network: host
+  #   container_name: ingest-service
+  #   depends_on:
+  #     - kafka
+  #     - namenode
+  #     - datanode1
+
+  # traffic-generator:
+  #   build:
+  #     context: ./generator
+  #     network: host
+  #   container_name: traffic-generator
+  #   depends_on:
+  #     - kafka
+
+
+  spark-master:
+    image: bde2020/spark-master:3.3.0-hadoop3.3
+    container_name: spark-master
     ports:
       - "8080:8080"
+      - "7077:7077"
     environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      - INIT_DAEMON_STEP=setup_spark
+      - PATH=/spark/bin:$PATH
+    volumes:
+      - ./analytics:/opt/spark-apps  
+      - ./jars:/opt/spark-jars
+    networks:
+      - bigdata-network
 
-  namenode:
-    image: apache/hadoop:3.3.6
-    container_name: namenode
-    hostname: namenode
-    command: ["hdfs", "namenode"]
+  spark-worker:
+    image: bde2020/spark-worker:3.3.0-hadoop3.3
+    container_name: spark-worker
+    depends_on:
+      - spark-master
     ports:
-      - "9870:9870"
-      - "8020:8020"
-    env_file:
-      - ./config
+      - "8081:8081"
     environment:
-      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2G
+    networks:
+      - bigdata-network
 
-  datanode1:
-    image: apache/hadoop:3.3.6
-    container_name: datanode1
-    hostname: datanode1
-    command: ["hdfs", "datanode"]
-    env_file:
-      - ./config
-    depends_on:
-      - namenode
-
-  resourcemanager:
-    image: apache/hadoop:3.3.6
-    container_name: resourcemanager
-    hostname: resourcemanager
-    command: ["yarn", "resourcemanager"]
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: traffic_db
+      POSTGRES_USER: traffic_user
+      POSTGRES_PASSWORD: traffic_pass
     ports:
-      - "8088:8088"
-    env_file:
-      - ./config
-    depends_on:
-      - namenode
-      - datanode1
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bigdata-network
 
-  nodemanager:
-    image: apache/hadoop:3.3.6
-    container_name: nodemanager
-    command: ["yarn", "nodemanager"]
-    env_file:
-      - ./config
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
     depends_on:
-      - resourcemanager
+      - postgres
+    networks:
+      - bigdata-network
 
-  ingest-service:
-    build:
-      context: ./hdfs_ingest
-      network: host
-    container_name: ingest-service
-    depends_on:
-      - kafka
-      - namenode
-      - datanode1
+# Add to volumes section at bottom:
+volumes:
+  postgres_data:
+  grafana_data:
 
-  traffic-generator:
-    build:
-      context: ./generator
-      network: host
-    container_name: traffic-generator
-    depends_on:
-      - kafka
+networks:
+  bigdata-network:
+    driver: bridge
