@@ -6,3 +6,6 @@ docker exec spark-master spark-submit \
 docker exec spark-master spark-submit   --master spark://spark-master:7077   --jars /opt/spark-jars/postgresql-42.6.0.jar   /opt/spark-apps/load_to_postgres.py
 
 docker exec -it postgres psql -U traffic_user -d traffic_db
+
+sudo chown -R 1000:0 airflow/logs/
+sudo chmod 666 /var/run/docker.sock

@@ -13,15 +13,8 @@ spark = SparkSession.builder.appName("TrafficAnalysis").master("local[*]").getOr
 # READ DATA
 # ==========================================
 
-# LOCAL FILE (for testing)
-# input_file = os.path.join(project_root, "analytics", "dummy_traffic.json")
-# df = spark.read.option("multiLine", "true").json(input_file)
-
-# DOCKER (if running in container, uncomment)
-df = spark.read.option("multiLine", "true").json("/opt/spark-apps/dummy_traffic.json")
-
-# HDFS (uncomment when ready to integrate)
-# df = spark.read.json("hdfs://namenode:9000/data/raw/traffic/*/*/*.json")
+# HDFS - Changed port 9000 → 8020
+df = spark.read.json("hdfs://namenode:8020/data/raw/traffic/*/*/*.json")
 
 print("📊 Raw Data:")
 df.show()
@@ -96,61 +89,27 @@ print("\n⚠️ Critical Zones:")
 critical_zones.show()
 
 # ==========================================
-# SAVE RESULTS
+# SAVE RESULTS TO HDFS
 # ==========================================
 
-# Create output directory if it doesn't exist
-# ==========================================
-# CONFIGURATION - CHOOSE YOUR ENVIRONMENT
-# ==========================================
-USE_LOCAL = False  # Set to True for local testing
-USE_DOCKER = True  # Set to True for Docker
-USE_HDFS = False  # Set to True for HDFS
+# Changed port 9000 → 8020
+traffic_by_zone.write.mode("overwrite").parquet(
+    "hdfs://namenode:8020/data/processed/traffic/traffic_by_zone"
+)
+speed_by_road.write.mode("overwrite").parquet(
+    "hdfs://namenode:8020/data/processed/traffic/speed_by_road"
+)
+congestion_alerts.write.mode("overwrite").parquet(
+    "hdfs://namenode:8020/data/processed/traffic/congestion_alerts"
+)
+hourly_traffic.write.mode("overwrite").parquet(
+    "hdfs://namenode:8020/data/processed/traffic/hourly_stats"
+)
+critical_zones.write.mode("overwrite").parquet(
+    "hdfs://namenode:8020/data/processed/traffic/critical_zones"
+)
 
-# ==========================================
-# SAVE RESULTS
-# ==========================================
-
-if USE_LOCAL:
-    # LOCAL SAVE
-    output_dir = os.path.join(project_root, "analytics", "output")
-    os.makedirs(output_dir, exist_ok=True)
-
-    traffic_by_zone.write.mode("overwrite").parquet(f"{output_dir}/traffic_by_zone")
-    speed_by_road.write.mode("overwrite").parquet(f"{output_dir}/speed_by_road")
-    congestion_alerts.write.mode("overwrite").parquet(f"{output_dir}/congestion_alerts")
-    hourly_traffic.write.mode("overwrite").parquet(f"{output_dir}/hourly_stats")
-    critical_zones.write.mode("overwrite").parquet(f"{output_dir}/critical_zones")
-
-elif USE_DOCKER:
-    # DOCKER SAVE
-    output_dir = "/opt/spark-apps/output"
-
-    traffic_by_zone.write.mode("overwrite").parquet(f"{output_dir}/traffic_by_zone")
-    speed_by_road.write.mode("overwrite").parquet(f"{output_dir}/speed_by_road")
-    congestion_alerts.write.mode("overwrite").parquet(f"{output_dir}/congestion_alerts")
-    hourly_traffic.write.mode("overwrite").parquet(f"{output_dir}/hourly_stats")
-    critical_zones.write.mode("overwrite").parquet(f"{output_dir}/critical_zones")
-
-elif USE_HDFS:
-    # HDFS SAVE
-    traffic_by_zone.write.mode("overwrite").parquet(
-        "hdfs://namenode:9000/data/processed/traffic/traffic_by_zone"
-    )
-    speed_by_road.write.mode("overwrite").parquet(
-        "hdfs://namenode:9000/data/processed/traffic/speed_by_road"
-    )
-    congestion_alerts.write.mode("overwrite").parquet(
-        "hdfs://namenode:9000/data/processed/traffic/congestion_alerts"
-    )
-    hourly_traffic.write.mode("overwrite").parquet(
-        "hdfs://namenode:9000/data/processed/traffic/hourly_stats"
-    )
-    critical_zones.write.mode("overwrite").parquet(
-        "hdfs://namenode:9000/data/processed/traffic/critical_zones"
-    )
-
-print("\n✅ Processing Complete!")
-
-print(f"\n✅ Processing Complete! Files saved to: {output_dir}")
+print(
+    "\n✅ Processing Complete! Files saved to HDFS at hdfs://namenode:8020/data/processed/traffic/"
+)
 spark.stop()

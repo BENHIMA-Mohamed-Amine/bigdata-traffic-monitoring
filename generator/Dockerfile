@@ -13,4 +13,4 @@ COPY traffic_generator.py .
 
 CMD ["python", "traffic_generator.py"]
 
-2.  **Processing**: Using Apache Spark to perform batch aggregations (e.g., calculating average traffic per zone) that serve as business indicators.
+# 2.  **Processing**: Using Apache Spark to perform batch aggregations (e.g., calculating average traffic per zone) that serve as business indicators.

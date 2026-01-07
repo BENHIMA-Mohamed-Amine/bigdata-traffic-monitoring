@@ -40,14 +40,14 @@ class TrafficSensor:
         day_time = 6 <= hour <= 22
 
         if is_rush_hour:
-             # High traffic, potential congestion
-             occupancy_factor = random.uniform(0.7, 1.0)
+            # High traffic, potential congestion
+            occupancy_factor = random.uniform(0.7, 1.0)
         elif day_time:
-             # Normal day traffic
-             occupancy_factor = random.uniform(0.3, 0.7)
+            # Normal day traffic
+            occupancy_factor = random.uniform(0.3, 0.7)
         else:
-             # Night traffic
-             occupancy_factor = random.uniform(0.0, 0.2)
+            # Night traffic
+            occupancy_factor = random.uniform(0.0, 0.2)
 
         # Calculate vehicle count based on capacity and occupancy
         vehicle_count = int(capacity * occupancy_factor)

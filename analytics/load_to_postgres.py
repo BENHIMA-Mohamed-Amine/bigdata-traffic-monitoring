@@ -28,7 +28,7 @@ else:
     )
 
     jdbc_url = "jdbc:postgresql://postgres:5432/traffic_db"
-    output_dir = "/opt/spark-apps/output"
+    output_dir = "hdfs://namenode:8020/data/processed/traffic"
 
 # PostgreSQL connection properties
 connection_properties = {

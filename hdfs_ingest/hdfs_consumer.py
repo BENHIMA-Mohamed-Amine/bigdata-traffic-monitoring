@@ -81,13 +81,13 @@ def flush_to_hdfs(client, data):
             content += json.dumps(e) + "\n"
             
         try:
-             try:
-                 client.makedirs(path)
-             except:
-                 pass
-             
-             client.write(full_path, data=content, encoding='utf-8')
-             print(f"Wrote {len(events)} events to {full_path}")
+            try:
+                client.makedirs(path)
+            except:
+                pass
+            
+            client.write(full_path, data=content, encoding='utf-8')
+            print(f"Wrote {len(events)} events to {full_path}")
         except Exception as e:
             print(f"Error writing to HDFS: {e}")
 
