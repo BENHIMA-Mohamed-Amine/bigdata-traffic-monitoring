@@ -254,7 +254,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8085:8080"
-    user: "${AIRFLOW_UID:-50000}:0"
+    user: "0:0"  # Run as root
     command: webserver
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
@@ -285,7 +285,7 @@ services:
       - ./airflow/logs:/opt/airflow/logs
       - ./analytics:/opt/spark-apps
       - /var/run/docker.sock:/var/run/docker.sock
-    user: "${AIRFLOW_UID:-50000}:0"
+    user: "0:0"  # Run as root
     command: scheduler
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
